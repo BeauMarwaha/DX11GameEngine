@@ -2,7 +2,9 @@
 
 #include "DXCore.h"
 #include "SimpleShader.h"
+#include "Mesh.h"
 #include <DirectXMath.h>
+#include <vector>
 
 class Game 
 	: public DXCore
@@ -31,9 +33,8 @@ private:
 	void CreateMatrices();
 	void CreateBasicGeometry();
 
-	// Buffers to hold actual geometry data
-	ID3D11Buffer* vertexBuffer;
-	ID3D11Buffer* indexBuffer;
+	// Mesh Vector Collection
+	std::vector<Mesh> meshes;
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;

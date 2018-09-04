@@ -21,8 +21,7 @@ Game::Game(HINSTANCE hInstance)
 		true)			   // Show extra stats (fps) in title bar?
 {
 	// Initialize fields
-	vertexBuffer = 0;
-	indexBuffer = 0;
+	meshes = std::vector<Mesh>();
 	vertexShader = 0;
 	pixelShader = 0;
 
@@ -41,11 +40,6 @@ Game::Game(HINSTANCE hInstance)
 // --------------------------------------------------------
 Game::~Game()
 {
-	// Release any (and all!) DirectX objects
-	// we've made in the Game class
-	if (vertexBuffer) { vertexBuffer->Release(); }
-	if (indexBuffer) { indexBuffer->Release(); }
-
 	// Delete our simple shader objects, which
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
@@ -132,7 +126,8 @@ void Game::CreateMatrices()
 
 
 // --------------------------------------------------------
-// Creates the geometry we're going to draw - a single triangle for now
+// Creates the geometry we're going to draw 
+// - For now this will be three simple Mesh objects
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
@@ -142,10 +137,11 @@ void Game::CreateBasicGeometry()
 	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
 	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 
+	// Set up the vertices and indices for Mesh 1 ---------------------------------
 	// Set up the vertices of the triangle we would like to draw
 	// - We're going to copy this array, exactly as it exists in memory
 	//    over to a DirectX-controlled data structure (the vertex buffer)
-	Vertex vertices[] =
+	Vertex vertices1[] =
 	{
 		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), red },
 		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), blue },
@@ -156,51 +152,46 @@ void Game::CreateBasicGeometry()
 	// - This is somewhat redundant for just 3 vertices (it's a simple example)
 	// - Indices are technically not required if the vertices are in the buffer 
 	//    in the correct order and each one will be used exactly once
-	// - But just to see how it's done...
-	int indices[] = { 0, 1, 2 };
+	unsigned int indices1[] = { 0, 1, 2 };
 
+	// Calculate the number of vertices and indicies
+	int vertexCount1 = sizeof(vertices1) / sizeof(vertices1[0]);
+	int indexCount1 = sizeof(indices1) / sizeof(indices1[0]);
 
-	// Create the VERTEX BUFFER description -----------------------------------
-	// - The description is created on the stack because we only need
-	//    it to create the buffer.  The description is then useless.
-	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex) * 3;       // 3 = number of vertices in the buffer
-	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER; // Tells DirectX this is a vertex buffer
-	vbd.CPUAccessFlags = 0;
-	vbd.MiscFlags = 0;
-	vbd.StructureByteStride = 0;
+	// Create the actual Mesh object for Mesh 1
+	meshes.push_back(Mesh(device, vertices1, vertexCount1, indices1, indexCount1));
+	
+	// Set up the vertices and indices for Mesh 2 ---------------------------------
+	Vertex vertices2[] =
+	{
+		{ XMFLOAT3(+2.0f, +1.0f, +0.0f), red },
+		{ XMFLOAT3(+3.5f, -1.0f, +0.0f), green },
+		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), blue },
+	};
+	unsigned int indices2[] = { 0, 1, 2 };
 
-	// Create the proper struct to hold the initial vertex data
-	// - This is how we put the initial data into the buffer
-	D3D11_SUBRESOURCE_DATA initialVertexData;
-	initialVertexData.pSysMem = vertices;
+	// Calculate the number of vertices and indicies
+	int vertexCount2 = sizeof(vertices2) / sizeof(vertices2[0]);
+	int indexCount2 = sizeof(indices2) / sizeof(indices2[0]);
 
-	// Actually create the buffer with the initial data
-	// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
-	device->CreateBuffer(&vbd, &initialVertexData, &vertexBuffer);
+	// Create the actual Mesh object for Mesh 1
+	meshes.push_back(Mesh(device, vertices2, vertexCount2, indices2, indexCount2));
 
+	// Set up the vertices and indices for Mesh 3 ---------------------------------
+	Vertex vertices3[] =
+	{
+		{ XMFLOAT3(-2.0f, +1.0f, +0.0f), blue },
+		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), red },
+		{ XMFLOAT3(-3.5f, -1.0f, +0.0f), green },
+	};
+	unsigned int indices3[] = { 0, 1, 2 };
 
+	// Calculate the number of vertices and indicies
+	int vertexCount3 = sizeof(vertices3) / sizeof(vertices3[0]);
+	int indexCount3 = sizeof(indices3) / sizeof(indices3[0]);
 
-	// Create the INDEX BUFFER description ------------------------------------
-	// - The description is created on the stack because we only need
-	//    it to create the buffer.  The description is then useless.
-	D3D11_BUFFER_DESC ibd;
-	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(int) * 3;         // 3 = number of indices in the buffer
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER; // Tells DirectX this is an index buffer
-	ibd.CPUAccessFlags = 0;
-	ibd.MiscFlags = 0;
-	ibd.StructureByteStride = 0;
-
-	// Create the proper struct to hold the initial index data
-	// - This is how we put the initial data into the buffer
-	D3D11_SUBRESOURCE_DATA initialIndexData;
-	initialIndexData.pSysMem = indices;
-
-	// Actually create the buffer with the initial data
-	// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
-	device->CreateBuffer(&ibd, &initialIndexData, &indexBuffer);
+	// Create the actual Mesh object for Mesh 1
+	meshes.push_back(Mesh(device, vertices3, vertexCount3, indices3, indexCount3));
 }
 
 
@@ -271,25 +262,27 @@ void Game::Draw(float deltaTime, float totalTime)
 	vertexShader->SetShader();
 	pixelShader->SetShader();
 
-	// Set buffers in the input assembler
-	//  - Do this ONCE PER OBJECT you're drawing, since each object might
-	//    have different geometry.
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
-	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	// Set the buffers and draw all meshes
+	for (std::vector<Mesh>::size_type i = 0; i != meshes.size(); i++) {
+		// Set buffers in the input assembler
+		//  - Do this ONCE PER OBJECT you're drawing, since each object might
+		//    have different geometry.
+		UINT stride = sizeof(Vertex);
+		UINT offset = 0;
+		ID3D11Buffer* vBuffer = meshes[i].GetVertexBuffer();
+		context->IASetVertexBuffers(0, 1, &vBuffer, &stride, &offset);
+		context->IASetIndexBuffer(meshes[i].GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
-	// Finally do the actual drawing
-	//  - Do this ONCE PER OBJECT you intend to draw
-	//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
-	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
-	//     vertices in the currently set VERTEX BUFFER
-	context->DrawIndexed(
-		3,     // The number of indices to use (we could draw a subset if we wanted)
-		0,     // Offset to the first index we want to use
-		0);    // Offset to add to each index when looking up vertices
-
-
+		// Finally do the actual drawing
+		//  - Do this ONCE PER OBJECT you intend to draw
+		//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
+		//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
+		//     vertices in the currently set VERTEX BUFFER
+		context->DrawIndexed(
+			3,     // The number of indices to use (we could draw a subset if we wanted)
+			0,     // Offset to the first index we want to use
+			0);    // Offset to add to each index when looking up vertices
+	}
 
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it

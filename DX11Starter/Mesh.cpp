@@ -79,13 +79,11 @@ Mesh::~Mesh()
 
 ID3D11Buffer* Mesh::GetVertexBuffer()
 {
-	vertexBuffer->AddRef(); // Tell DirectX there is a new reference to this object
 	return vertexBuffer;
 }
 
 ID3D11Buffer* Mesh::GetIndexBuffer()
 {
-	indexBuffer->AddRef(); // Tell DirectX there is a new reference to this object
 	return indexBuffer;
 }
 

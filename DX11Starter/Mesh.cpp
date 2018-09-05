@@ -50,7 +50,9 @@ Mesh::Mesh(ID3D11Device* device, Vertex* vertices, int vertexCount, unsigned int
 Mesh::Mesh(Mesh const& other)
 {
 	vertexBuffer = other.vertexBuffer;
+	vertexBuffer->AddRef(); // Tell DirectX there is a new reference to this object
 	indexBuffer = other.indexBuffer;
+	indexBuffer->AddRef(); // Tell DirectX there is a new reference to this object
 	indexCount = other.indexCount;
 }
 
@@ -60,7 +62,9 @@ Mesh & Mesh::operator=(Mesh const& other)
 	{
 		// Switch values
 		vertexBuffer = other.vertexBuffer;
+		vertexBuffer->AddRef(); // Tell DirectX there is a new reference to this object
 		indexBuffer = other.indexBuffer;
+		indexBuffer->AddRef(); // Tell DirectX there is a new reference to this object
 		indexCount = other.indexCount;
 	}
 	return *this;
@@ -75,11 +79,13 @@ Mesh::~Mesh()
 
 ID3D11Buffer* Mesh::GetVertexBuffer()
 {
+	vertexBuffer->AddRef(); // Tell DirectX there is a new reference to this object
 	return vertexBuffer;
 }
 
 ID3D11Buffer* Mesh::GetIndexBuffer()
 {
+	indexBuffer->AddRef(); // Tell DirectX there is a new reference to this object
 	return indexBuffer;
 }
 

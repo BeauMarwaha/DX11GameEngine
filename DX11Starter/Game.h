@@ -2,7 +2,7 @@
 
 #include "DXCore.h"
 #include "SimpleShader.h"
-#include "Mesh.h"
+#include "Entity.h"
 #include <DirectXMath.h>
 #include <vector>
 
@@ -33,8 +33,11 @@ private:
 	void CreateMatrices();
 	void CreateBasicGeometry();
 
-	// Mesh Vector Collection
-	std::vector<Mesh> meshes;
+	// Entity Vector Collection
+	std::vector<Entity> entities;
+
+	// Mesh Pointer Vector Collection
+	std::vector<Mesh*> meshes;
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;

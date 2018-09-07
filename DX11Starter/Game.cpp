@@ -21,7 +21,8 @@ Game::Game(HINSTANCE hInstance)
 		true)			   // Show extra stats (fps) in title bar?
 {
 	// Initialize fields
-	meshes = std::vector<Mesh>();
+	meshes = std::vector<Mesh*>();
+	entities = std::vector<Entity>();
 	vertexShader = 0;
 	pixelShader = 0;
 
@@ -44,6 +45,11 @@ Game::~Game()
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
 	delete pixelShader;
+
+	// Delete all entrys in the Mesh Pointer Vector Collection
+	for (std::vector<Mesh>::size_type i = 0; i != meshes.size(); i++) {
+		delete meshes[i];
+	}
 }
 
 // --------------------------------------------------------
@@ -159,7 +165,7 @@ void Game::CreateBasicGeometry()
 	int indexCount1 = sizeof(indices1) / sizeof(indices1[0]);
 
 	// Create the actual Mesh object for Mesh 1
-	meshes.push_back(Mesh(device, vertices1, vertexCount1, indices1, indexCount1));
+	meshes.push_back(new Mesh(device, vertices1, vertexCount1, indices1, indexCount1));
 	
 	// Set up the vertices and indices for Mesh 2 ---------------------------------
 	Vertex vertices2[] =
@@ -175,7 +181,7 @@ void Game::CreateBasicGeometry()
 	int indexCount2 = sizeof(indices2) / sizeof(indices2[0]);
 
 	// Create the actual Mesh object for Mesh 1
-	meshes.push_back(Mesh(device, vertices2, vertexCount2, indices2, indexCount2));
+	meshes.push_back(new Mesh(device, vertices2, vertexCount2, indices2, indexCount2));
 
 	// Set up the vertices and indices for Mesh 3 ---------------------------------
 	Vertex vertices3[] =
@@ -191,7 +197,13 @@ void Game::CreateBasicGeometry()
 	int indexCount3 = sizeof(indices3) / sizeof(indices3[0]);
 
 	// Create the actual Mesh object for Mesh 1
-	meshes.push_back(Mesh(device, vertices3, vertexCount3, indices3, indexCount3));
+	meshes.push_back(new Mesh(device, vertices3, vertexCount3, indices3, indexCount3));
+
+	// Assign created meshes to new entities
+	entities.push_back(Entity(meshes[0]));
+	entities.push_back(Entity(meshes[0]));
+	entities.push_back(Entity(meshes[1]));
+	entities.push_back(Entity(meshes[2]));
 }
 
 
@@ -221,6 +233,11 @@ void Game::Update(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
+
+	// Update all entities
+	for (std::vector<Entity>::size_type i = 0; i != entities.size(); i++) {
+		entities[i].Update();
+	}
 }
 
 // --------------------------------------------------------
@@ -262,16 +279,20 @@ void Game::Draw(float deltaTime, float totalTime)
 	vertexShader->SetShader();
 	pixelShader->SetShader();
 
-	// Set the buffers and draw all meshes
-	for (std::vector<Mesh>::size_type i = 0; i != meshes.size(); i++) {
+	// Set the buffers and draw all meshes for each entity
+	for (std::vector<Entity>::size_type i = 0; i != entities.size(); i++) {
+		// Set the world matrix in the vertex shader for this entity
+		vertexShader->SetMatrix4x4("world", entities[i].GetWorldMatrix());
+		vertexShader->CopyAllBufferData();
+
 		// Set buffers in the input assembler
 		//  - Do this ONCE PER OBJECT you're drawing, since each object might
 		//    have different geometry.
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
-		ID3D11Buffer* vBuffer = meshes[i].GetVertexBuffer();
+		ID3D11Buffer* vBuffer = entities[i].GetMesh()->GetVertexBuffer();
 		context->IASetVertexBuffers(0, 1, &vBuffer, &stride, &offset);
-		context->IASetIndexBuffer(meshes[i].GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		context->IASetIndexBuffer(entities[i].GetMesh()->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 		// Finally do the actual drawing
 		//  - Do this ONCE PER OBJECT you intend to draw
@@ -289,7 +310,6 @@ void Game::Draw(float deltaTime, float totalTime)
 	//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
 	swapChain->Present(0, 0);
 }
-
 
 #pragma region Mouse Input
 

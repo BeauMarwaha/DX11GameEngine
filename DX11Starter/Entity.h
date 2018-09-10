@@ -30,6 +30,9 @@ public:
 	void SetRotation(DirectX::XMFLOAT3 rotation);
 	void SetScale(DirectX::XMFLOAT3 scale);
 	void SetMesh(Mesh* mesh);
+
+	// Helper methods
+	DirectX::XMFLOAT4X4 GetIdentityMatrix();
 private:
 	// World Matrix representing the entity’s current position, rotation, and scale
 	DirectX::XMFLOAT4X4 worldMatrix;

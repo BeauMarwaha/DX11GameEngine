@@ -42,14 +42,10 @@ Entity::~Entity()
 void Entity::Update()
 {
 	// Update the world matrix based on the position, rotation, and scale
-	position.y += .001;
-	DirectX::XMFLOAT4X4* matrix = new DirectX::XMFLOAT4X4();
-	DirectX::XMStoreFloat4x4(matrix,
+	DirectX::XMStoreFloat4x4(&worldMatrix,
 		DirectX::XMMatrixTranslation(position.x, position.y, position.z) *
 		DirectX::XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z) *
 		DirectX::XMMatrixScaling(scale.x, scale.y, scale.z));
-	worldMatrix = *matrix;
-	delete matrix;
 }
 
 DirectX::XMFLOAT4X4 Entity::GetWorldMatrix()
@@ -105,9 +101,6 @@ void Entity::SetMesh(Mesh* mesh)
 DirectX::XMFLOAT4X4 Entity::GetIdentityMatrix()
 {
 	DirectX::XMFLOAT4X4 identityMatrix = DirectX::XMFLOAT4X4();
-	identityMatrix._11 = 1;
-	identityMatrix._22 = 1;
-	identityMatrix._33 = 1;
-	identityMatrix._44 = 1;
+	DirectX::XMStoreFloat4x4(&identityMatrix, DirectX::XMMatrixIdentity());
 	return identityMatrix;
 }

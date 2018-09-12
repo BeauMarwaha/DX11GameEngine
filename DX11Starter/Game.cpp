@@ -281,8 +281,10 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// Set the buffers and draw all meshes for each entity
 	for (std::vector<Entity>::size_type i = 0; i != entities.size(); i++) {
-		// Set the world matrix in the vertex shader for this entity
-		vertexShader->SetMatrix4x4("world", entities[i].GetWorldMatrix());
+		// Set the transposed world matrix in the vertex shader for this entity
+		XMFLOAT4X4 worldMatrixTranspose;
+		XMStoreFloat4x4(&worldMatrixTranspose, XMMatrixTranspose(XMLoadFloat4x4(&entities[i].GetWorldMatrix())));
+		vertexShader->SetMatrix4x4("world", worldMatrixTranspose);
 		vertexShader->CopyAllBufferData();
 
 		// Set buffers in the input assembler

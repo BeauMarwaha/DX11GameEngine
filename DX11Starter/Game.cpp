@@ -86,8 +86,6 @@ void Game::LoadShaders()
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
 }
 
-
-
 // --------------------------------------------------------
 // Initializes the matrices necessary to represent our geometry's 
 // transformations and our 3D camera
@@ -130,7 +128,6 @@ void Game::CreateMatrices()
 	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); // Transpose for HLSL!
 }
 
-
 // --------------------------------------------------------
 // Creates the geometry we're going to draw 
 // - For now this will be three simple Mesh objects
@@ -151,7 +148,7 @@ void Game::CreateBasicGeometry()
 	{
 		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), red },
 		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), blue },
-		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), green },
+		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), green }
 	};
 
 	// Set up the indices, which tell us which vertices to use and in which order
@@ -172,9 +169,10 @@ void Game::CreateBasicGeometry()
 	{
 		{ XMFLOAT3(+2.0f, +1.0f, +0.0f), red },
 		{ XMFLOAT3(+3.5f, -1.0f, +0.0f), green },
-		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), blue },
+		{ XMFLOAT3(+2.0f, -1.0f, +0.0f), blue },
+		{ XMFLOAT3(+3.5f, +1.0f, +0.0f), green }
 	};
-	unsigned int indices2[] = { 0, 1, 2 };
+	unsigned int indices2[] = { 0, 1, 2, 0, 3, 1 };
 
 	// Calculate the number of vertices and indicies
 	int vertexCount2 = sizeof(vertices2) / sizeof(vertices2[0]);
@@ -187,10 +185,11 @@ void Game::CreateBasicGeometry()
 	Vertex vertices3[] =
 	{
 		{ XMFLOAT3(-2.0f, +1.0f, +0.0f), blue },
-		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), red },
+		{ XMFLOAT3(-2.0f, -1.0f, +0.0f), red },
 		{ XMFLOAT3(-3.5f, -1.0f, +0.0f), green },
+		{ XMFLOAT3(-3.5f, +1.0f, +0.0f), green }
 	};
-	unsigned int indices3[] = { 0, 1, 2 };
+	unsigned int indices3[] = { 0, 1, 2, 3, 0, 2 };
 
 	// Calculate the number of vertices and indicies
 	int vertexCount3 = sizeof(vertices3) / sizeof(vertices3[0]);
@@ -202,6 +201,8 @@ void Game::CreateBasicGeometry()
 	// Assign created meshes to new entities
 	entities.push_back(Entity(meshes[0]));
 	entities.push_back(Entity(meshes[0]));
+	entities.push_back(Entity(meshes[1]));
+	entities.push_back(Entity(meshes[2]));
 	entities.push_back(Entity(meshes[1]));
 	entities.push_back(Entity(meshes[2]));
 }
@@ -234,9 +235,73 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
+	// Movement for entity 0
+	if (&entities[0] != nullptr)
+	{
+		// Set movement rate
+		float speed = 5.0;
+
+		if (GetAsyncKeyState('W') & 0x8000)
+		{
+			entities[0].MoveForward(XMFLOAT3(0, speed * deltaTime, 0));
+		}
+
+		if (GetAsyncKeyState('S') & 0x8000)
+		{
+			entities[0].MoveForward(XMFLOAT3(0, -speed * deltaTime, 0));
+		}
+
+		if (GetAsyncKeyState('D') & 0x8000)
+		{
+			entities[0].MoveForward(XMFLOAT3(speed * deltaTime, 0, 0));
+		}
+
+		if (GetAsyncKeyState('A') & 0x8000)
+		{
+			entities[0].MoveForward(XMFLOAT3(-speed * deltaTime, 0, 0));
+		}
+
+		if (GetAsyncKeyState('E') & 0x8000)
+		{
+			entities[0].MoveForward(XMFLOAT3(0, 0, speed * deltaTime));
+		}
+
+		if (GetAsyncKeyState('Q') & 0x8000)
+		{
+			entities[0].MoveForward(XMFLOAT3(0, 0, -speed * deltaTime));
+		}
+	}
+
+	// Rotate entity 1, 4, and 5
+	XMFLOAT3 currentRot = entities[1].GetRotation();
+	XMFLOAT3 newRot = XMFLOAT3(currentRot.x, currentRot.y, currentRot.z + (1 * deltaTime));
+	entities[1].SetRotation(newRot);
+	entities[4].SetRotation(newRot);
+	entities[5].SetRotation(newRot);
+
+	// Set up the rate of LERP to pulse up and down each second
+	float rate = 0.5f;
+	if ((long)totalTime % 2 == 0)
+	{
+		rate = totalTime - (long)totalTime;
+	}
+	else
+	{
+		rate = 1 - (totalTime - (long)totalTime);
+	}
+
+	// Lerp the scale of entity 2 and 3
+	XMFLOAT3 scale = XMFLOAT3(1.0, 1.0, 1.0);
+	XMFLOAT3 scaleMin = XMFLOAT3(0.75, 0.75, 0.75);
+	XMFLOAT3 scaleMax = XMFLOAT3(1.25, 1.25, 1.25);
+	XMStoreFloat3(&scale, XMVectorLerp(XMLoadFloat3(&scaleMin), XMLoadFloat3(&scaleMax), rate));
+	entities[2].SetScale(scale);
+	entities[3].SetScale(scale);
+
 	// Update all entities
-	for (std::vector<Entity>::size_type i = 0; i != entities.size(); i++) {
-		entities[i].Update();
+	for (std::vector<Entity>::size_type i = 0; i != entities.size(); i++) 
+	{
+		entities[i].Update(deltaTime, totalTime);
 	}
 }
 
@@ -302,7 +367,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
 		//     vertices in the currently set VERTEX BUFFER
 		context->DrawIndexed(
-			3,     // The number of indices to use (we could draw a subset if we wanted)
+			entities[i].GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}

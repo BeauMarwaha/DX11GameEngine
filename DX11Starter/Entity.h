@@ -15,7 +15,7 @@ public:
 	~Entity(); // Destructor
 
 	// Updates the game object
-	void Update();
+	void Update(float deltaTime, float totalTime);
 
 	// GET methods
 	DirectX::XMFLOAT4X4 GetWorldMatrix();
@@ -30,6 +30,10 @@ public:
 	void SetRotation(DirectX::XMFLOAT3 rotation);
 	void SetScale(DirectX::XMFLOAT3 scale);
 	void SetMesh(Mesh* mesh);
+
+	// Entity Transform Methods
+	void Move(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 velocity);
+	void MoveForward(DirectX::XMFLOAT3 velocity);
 
 	// Helper methods
 	DirectX::XMFLOAT4X4 GetIdentityMatrix();

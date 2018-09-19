@@ -235,7 +235,7 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
-	// Movement for entity 0
+	// Movement for the camera ********************************************** TO DO ************************
 	if (&entities[0] != nullptr)
 	{
 		// Set movement rate
@@ -243,30 +243,67 @@ void Game::Update(float deltaTime, float totalTime)
 
 		if (GetAsyncKeyState('W') & 0x8000)
 		{
-			entities[0].MoveForward(XMFLOAT3(0, speed * deltaTime, 0));
+
 		}
 
 		if (GetAsyncKeyState('S') & 0x8000)
 		{
-			entities[0].MoveForward(XMFLOAT3(0, -speed * deltaTime, 0));
+
 		}
 
 		if (GetAsyncKeyState('D') & 0x8000)
 		{
-			entities[0].MoveForward(XMFLOAT3(speed * deltaTime, 0, 0));
+
 		}
 
 		if (GetAsyncKeyState('A') & 0x8000)
 		{
-			entities[0].MoveForward(XMFLOAT3(-speed * deltaTime, 0, 0));
+
 		}
 
 		if (GetAsyncKeyState('E') & 0x8000)
 		{
-			entities[0].MoveForward(XMFLOAT3(0, 0, speed * deltaTime));
+
 		}
 
 		if (GetAsyncKeyState('Q') & 0x8000)
+		{
+
+		}
+	}
+	
+	// Movement for entity 0
+	if (&entities[0] != nullptr)
+	{
+		// Set movement rate
+		float speed = 5.0;
+
+		if (GetAsyncKeyState('I') & 0x8000)
+		{
+			entities[0].MoveForward(XMFLOAT3(0, speed * deltaTime, 0));
+		}
+
+		if (GetAsyncKeyState('K') & 0x8000)
+		{
+			entities[0].MoveForward(XMFLOAT3(0, -speed * deltaTime, 0));
+		}
+
+		if (GetAsyncKeyState('L') & 0x8000)
+		{
+			entities[0].MoveForward(XMFLOAT3(speed * deltaTime, 0, 0));
+		}
+
+		if (GetAsyncKeyState('J') & 0x8000)
+		{
+			entities[0].MoveForward(XMFLOAT3(-speed * deltaTime, 0, 0));
+		}
+
+		if (GetAsyncKeyState('O') & 0x8000)
+		{
+			entities[0].MoveForward(XMFLOAT3(0, 0, speed * deltaTime));
+		}
+
+		if (GetAsyncKeyState('U') & 0x8000)
 		{
 			entities[0].MoveForward(XMFLOAT3(0, 0, -speed * deltaTime));
 		}

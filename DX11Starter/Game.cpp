@@ -25,8 +25,9 @@ Game::Game(HINSTANCE hInstance)
 	meshes = std::vector<Mesh*>();
 	entities = std::vector<Entity>();
 	camera = new Camera(width, height);
-	vertexShader = 0;
-	pixelShader = 0;
+	vertexShader = nullptr;
+	pixelShader = nullptr;
+	material = nullptr;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -50,6 +51,9 @@ Game::~Game()
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
 	delete pixelShader;
+
+	// Delete the basic material
+	delete material;
 
 	// Delete all entrys in the Mesh Pointer Vector Collection
 	for (std::vector<Mesh>::size_type i = 0; i != meshes.size(); i++) {
@@ -92,7 +96,7 @@ void Game::LoadShaders()
 
 // --------------------------------------------------------
 // Creates the geometry we're going to draw 
-// - For now this will be three simple Mesh objects
+// - For now this will be a few simple Mesh objects
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
@@ -160,13 +164,16 @@ void Game::CreateBasicGeometry()
 	// Create the actual Mesh object for Mesh 1
 	meshes.push_back(new Mesh(device, vertices3, vertexCount3, indices3, indexCount3));
 
+	// Set up a material to be shared by all the basic mesh entities
+	material = new Material(vertexShader, pixelShader);
+
 	// Assign created meshes to new entities
-	entities.push_back(Entity(meshes[0]));
-	entities.push_back(Entity(meshes[0]));
-	entities.push_back(Entity(meshes[1]));
-	entities.push_back(Entity(meshes[2]));
-	entities.push_back(Entity(meshes[1]));
-	entities.push_back(Entity(meshes[2]));
+	entities.push_back(Entity(meshes[0], material));
+	entities.push_back(Entity(meshes[0], material));
+	entities.push_back(Entity(meshes[1], material));
+	entities.push_back(Entity(meshes[2], material));
+	entities.push_back(Entity(meshes[1], material));
+	entities.push_back(Entity(meshes[2], material));
 }
 
 
@@ -283,53 +290,9 @@ void Game::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
-	// Send data to shader variables
-	//  - Do this ONCE PER OBJECT you're drawing
-	//  - This is actually a complex process of copying data to a local buffer
-	//    and then copying that entire buffer to the GPU.  
-	//  - The "SimpleShader" class handles all of that for you.
-	//vertexShader->SetMatrix4x4("world", worldMatrix);
-	vertexShader->SetMatrix4x4("view", camera->GetViewMatrix());
-	vertexShader->SetMatrix4x4("projection", camera->GetProjectionMatrix());
-
-	// Once you've set all of the data you care to change for
-	// the next draw call, you need to actually send it to the GPU
-	//  - If you skip this, the "SetMatrix" calls above won't make it to the GPU!
-	vertexShader->CopyAllBufferData();
-
-	// Set the vertex and pixel shaders to use for the next Draw() command
-	//  - These don't technically need to be set every frame...YET
-	//  - Once you start applying different shaders to different objects,
-	//    you'll need to swap the current shaders before each draw
-	vertexShader->SetShader();
-	pixelShader->SetShader();
-
-	// Set the buffers and draw all meshes for each entity
+	// Draw each entity
 	for (std::vector<Entity>::size_type i = 0; i != entities.size(); i++) {
-		// Set the transposed world matrix in the vertex shader for this entity
-		XMFLOAT4X4 worldMatrixTranspose;
-		XMStoreFloat4x4(&worldMatrixTranspose, XMMatrixTranspose(XMLoadFloat4x4(&entities[i].GetWorldMatrix())));
-		vertexShader->SetMatrix4x4("world", worldMatrixTranspose);
-		vertexShader->CopyAllBufferData();
-
-		// Set buffers in the input assembler
-		//  - Do this ONCE PER OBJECT you're drawing, since each object might
-		//    have different geometry.
-		UINT stride = sizeof(Vertex);
-		UINT offset = 0;
-		ID3D11Buffer* vBuffer = entities[i].GetMesh()->GetVertexBuffer();
-		context->IASetVertexBuffers(0, 1, &vBuffer, &stride, &offset);
-		context->IASetIndexBuffer(entities[i].GetMesh()->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-
-		// Finally do the actual drawing
-		//  - Do this ONCE PER OBJECT you intend to draw
-		//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
-		//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
-		//     vertices in the currently set VERTEX BUFFER
-		context->DrawIndexed(
-			entities[i].GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-			0,     // Offset to the first index we want to use
-			0);    // Offset to add to each index when looking up vertices
+		entities[i].Draw(context, camera->GetViewMatrix(), camera->GetProjectionMatrix());
 	}
 
 	// Present the back buffer to the user

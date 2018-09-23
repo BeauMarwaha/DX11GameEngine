@@ -2,6 +2,7 @@
 
 #include <DirectXMath.h>
 #include "Mesh.h"
+#include "Material.h"
 
 // --------------------------------------------------------
 // A Entity class that represents a singular game object
@@ -9,7 +10,7 @@
 class Entity
 {
 public:
-	Entity(Mesh* mesh); // Constructor
+	Entity(Mesh* mesh, Material* material); // Constructor
 	Entity(Entity const& other); // Copy Constructor
 	Entity& operator=(Entity const& other); // Copy Assignment Operator
 	~Entity(); // Destructor
@@ -37,6 +38,9 @@ public:
 
 	// Helper methods
 	DirectX::XMFLOAT4X4 GetIdentityMatrix();
+	void Draw(ID3D11DeviceContext* context, DirectX::XMFLOAT4X4 viewMatrix, DirectX::XMFLOAT4X4 projectionMatrix);
+	void PrepareMaterial(DirectX::XMFLOAT4X4 viewMatrix, DirectX::XMFLOAT4X4 projectionMatrix);
+
 private:
 	// World Matrix representing the entity’s current position, rotation, and scale
 	DirectX::XMFLOAT4X4 worldMatrix;
@@ -48,5 +52,8 @@ private:
 
 	// Entity Mesh
 	Mesh* mesh;
+
+	// Entity Material
+	Material* material;
 };
 

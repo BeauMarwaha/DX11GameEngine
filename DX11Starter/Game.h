@@ -46,6 +46,9 @@ private:
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
 
+	// Basic Material reference
+	Material* material;
+
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;

@@ -21,8 +21,10 @@ Game::Game(HINSTANCE hInstance)
 		true)			   // Show extra stats (fps) in title bar?
 {
 	// Initialize fields
+	mouseDown = false;
 	meshes = std::vector<Mesh*>();
 	entities = std::vector<Entity>();
+	camera = new Camera(width, height);
 	vertexShader = 0;
 	pixelShader = 0;
 
@@ -41,6 +43,9 @@ Game::Game(HINSTANCE hInstance)
 // --------------------------------------------------------
 Game::~Game()
 {
+	// Delete the camera
+	delete camera;
+
 	// Delete our simple shader objects, which
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
@@ -62,7 +67,6 @@ void Game::Init()
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
-	CreateMatrices();
 	CreateBasicGeometry();
 
 	// Tell the input assembler stage of the pipeline what kind of
@@ -84,48 +88,6 @@ void Game::LoadShaders()
 
 	pixelShader = new SimplePixelShader(device, context);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
-}
-
-// --------------------------------------------------------
-// Initializes the matrices necessary to represent our geometry's 
-// transformations and our 3D camera
-// --------------------------------------------------------
-void Game::CreateMatrices()
-{
-	// Set up world matrix
-	// - In an actual game, each object will need one of these and they should
-	//    update when/if the object moves (every frame)
-	// - You'll notice a "transpose" happening below, which is redundant for
-	//    an identity matrix.  This is just to show that HLSL expects a different
-	//    matrix (column major vs row major) than the DirectX Math library
-	XMMATRIX W = XMMatrixIdentity();
-	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(W)); // Transpose for HLSL!
-
-	// Create the View matrix
-	// - In an actual game, recreate this matrix every time the camera 
-	//    moves (potentially every frame)
-	// - We're using the LOOK TO function, which takes the position of the
-	//    camera and the direction vector along which to look (as well as "up")
-	// - Another option is the LOOK AT function, to look towards a specific
-	//    point in 3D space
-	XMVECTOR pos = XMVectorSet(0, 0, -5, 0);
-	XMVECTOR dir = XMVectorSet(0, 0, 1, 0);
-	XMVECTOR up = XMVectorSet(0, 1, 0, 0);
-	XMMATRIX V = XMMatrixLookToLH(
-		pos,     // The position of the "camera"
-		dir,     // Direction the camera is looking
-		up);     // "Up" direction in 3D space (prevents roll)
-	XMStoreFloat4x4(&viewMatrix, XMMatrixTranspose(V)); // Transpose for HLSL!
-
-	// Create the Projection matrix
-	// - This should match the window's aspect ratio, and also update anytime
-	//    the window resizes (which is already happening in OnResize() below)
-	XMMATRIX P = XMMatrixPerspectiveFovLH(
-		0.25f * 3.1415926535f,		// Field of View Angle
-		(float)width / height,		// Aspect ratio
-		0.1f,						// Near clip plane distance
-		100.0f);					// Far clip plane distance
-	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); // Transpose for HLSL!
 }
 
 // --------------------------------------------------------
@@ -217,13 +179,8 @@ void Game::OnResize()
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 
-	// Update our projection matrix since the window size changed
-	XMMATRIX P = XMMatrixPerspectiveFovLH(
-		0.25f * 3.1415926535f,	// Field of View Angle
-		(float)width / height,	// Aspect ratio
-		0.1f,				  	// Near clip plane distance
-		100.0f);			  	// Far clip plane distance
-	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); // Transpose for HLSL!
+	// Update our camera's projection matrix since the window size changed
+	camera->ResizeWindow(width, height);
 }
 
 // --------------------------------------------------------
@@ -235,43 +192,6 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
-	// Movement for the camera ********************************************** TO DO ************************
-	if (&entities[0] != nullptr)
-	{
-		// Set movement rate
-		float speed = 5.0;
-
-		if (GetAsyncKeyState('W') & 0x8000)
-		{
-
-		}
-
-		if (GetAsyncKeyState('S') & 0x8000)
-		{
-
-		}
-
-		if (GetAsyncKeyState('D') & 0x8000)
-		{
-
-		}
-
-		if (GetAsyncKeyState('A') & 0x8000)
-		{
-
-		}
-
-		if (GetAsyncKeyState('E') & 0x8000)
-		{
-
-		}
-
-		if (GetAsyncKeyState('Q') & 0x8000)
-		{
-
-		}
-	}
-	
 	// Movement for entity 0
 	if (&entities[0] != nullptr)
 	{
@@ -335,6 +255,9 @@ void Game::Update(float deltaTime, float totalTime)
 	entities[2].SetScale(scale);
 	entities[3].SetScale(scale);
 
+	// Update the camera
+	camera->Update(deltaTime, totalTime);
+
 	// Update all entities
 	for (std::vector<Entity>::size_type i = 0; i != entities.size(); i++) 
 	{
@@ -365,9 +288,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	//  - This is actually a complex process of copying data to a local buffer
 	//    and then copying that entire buffer to the GPU.  
 	//  - The "SimpleShader" class handles all of that for you.
-	vertexShader->SetMatrix4x4("world", worldMatrix);
-	vertexShader->SetMatrix4x4("view", viewMatrix);
-	vertexShader->SetMatrix4x4("projection", projectionMatrix);
+	//vertexShader->SetMatrix4x4("world", worldMatrix);
+	vertexShader->SetMatrix4x4("view", camera->GetViewMatrix());
+	vertexShader->SetMatrix4x4("projection", camera->GetProjectionMatrix());
 
 	// Once you've set all of the data you care to change for
 	// the next draw call, you need to actually send it to the GPU
@@ -424,7 +347,7 @@ void Game::Draw(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 {
-	// Add any custom code here...
+	mouseDown = true;
 
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;
@@ -441,7 +364,7 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 {
-	// Add any custom code here...
+	mouseDown = false;
 
 	// We don't care about the tracking the cursor outside
 	// the window anymore (we're not dragging if the mouse is up)
@@ -455,7 +378,25 @@ void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 {
-	// Add any custom code here...
+	// Initialize the previous mouse positions at start so they aren't super large values
+	static bool initialized = false;
+	if (!initialized)
+	{
+		prevMousePos.x = x;
+		prevMousePos.y = y;
+		initialized = true;
+	}
+
+	// Set the sensitivity of the camera
+	static float sensitivity = .1f;
+
+	if (mouseDown)
+	{
+		// Rotate the camera
+		float deltaX = (x - prevMousePos.x) * (3.141592f / 180.0f);
+		float deltaY = (y - prevMousePos.y) * (3.141592f / 180.0f);
+		camera->Rotate(deltaY * sensitivity, deltaX * sensitivity);
+	}
 
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;

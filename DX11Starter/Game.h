@@ -3,6 +3,7 @@
 #include "DXCore.h"
 #include "SimpleShader.h"
 #include "Entity.h"
+#include "Camera.h"
 #include <DirectXMath.h>
 #include <vector>
 
@@ -26,11 +27,10 @@ public:
 	void OnMouseUp	 (WPARAM buttonState, int x, int y);
 	void OnMouseMove (WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta,   int x, int y);
-private:
 
+private:
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
-	void CreateMatrices();
 	void CreateBasicGeometry();
 
 	// Entity Vector Collection
@@ -39,17 +39,18 @@ private:
 	// Mesh Pointer Vector Collection
 	std::vector<Mesh*> meshes;
 
+	// FPS camera
+	Camera* camera;
+
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
 
-	// The matrices to go from model space to screen space
-	DirectX::XMFLOAT4X4 worldMatrix;
-	DirectX::XMFLOAT4X4 viewMatrix;
-	DirectX::XMFLOAT4X4 projectionMatrix;
-
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
+
+	// Indicates whether the left mouse button is pressed
+	bool mouseDown;
 };
 

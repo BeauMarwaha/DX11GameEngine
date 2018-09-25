@@ -100,21 +100,15 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	// Create some temporary variables to represent colors
-	// - Not necessary, just makes things more readable
-	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-
 	// Set up the vertices and indices for Mesh 1 ---------------------------------
 	// Set up the vertices of the triangle we would like to draw
 	// - We're going to copy this array, exactly as it exists in memory
 	//    over to a DirectX-controlled data structure (the vertex buffer)
 	Vertex vertices1[] =
 	{
-		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), red },
-		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), blue },
-		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), green }
+		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) }
 	};
 
 	// Set up the indices, which tell us which vertices to use and in which order
@@ -133,10 +127,10 @@ void Game::CreateBasicGeometry()
 	// Set up the vertices and indices for Mesh 2 ---------------------------------
 	Vertex vertices2[] =
 	{
-		{ XMFLOAT3(+2.0f, +1.0f, +0.0f), red },
-		{ XMFLOAT3(+3.5f, -1.0f, +0.0f), green },
-		{ XMFLOAT3(+2.0f, -1.0f, +0.0f), blue },
-		{ XMFLOAT3(+3.5f, +1.0f, +0.0f), green }
+		{ XMFLOAT3(+2.0f, +1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(+3.5f, -1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(+2.0f, -1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(+3.5f, +1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) }
 	};
 	unsigned int indices2[] = { 0, 1, 2, 0, 3, 1 };
 
@@ -150,10 +144,10 @@ void Game::CreateBasicGeometry()
 	// Set up the vertices and indices for Mesh 3 ---------------------------------
 	Vertex vertices3[] =
 	{
-		{ XMFLOAT3(-2.0f, +1.0f, +0.0f), blue },
-		{ XMFLOAT3(-2.0f, -1.0f, +0.0f), red },
-		{ XMFLOAT3(-3.5f, -1.0f, +0.0f), green },
-		{ XMFLOAT3(-3.5f, +1.0f, +0.0f), green }
+		{ XMFLOAT3(-2.0f, +1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(-2.0f, -1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(-3.5f, -1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(-3.5f, +1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) }
 	};
 	unsigned int indices3[] = { 0, 1, 2, 3, 0, 2 };
 
@@ -175,7 +169,6 @@ void Game::CreateBasicGeometry()
 	entities.push_back(Entity(meshes[1], material));
 	entities.push_back(Entity(meshes[2], material));
 }
-
 
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.

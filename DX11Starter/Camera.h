@@ -6,7 +6,7 @@
 class Camera
 {
 public:
-	Camera(float width, float height); // Constructor
+	Camera(unsigned int width, unsigned int height); // Constructor
 	~Camera(); // Destructor
 
 	// Update method
@@ -15,7 +15,7 @@ public:
 	// Helper methods
 	void Move(float deltaTime);
 	void Rotate(float deltaX, float deltaY);
-	void ResizeWindow(float width, float height);
+	void ResizeWindow(unsigned int width, unsigned int height);
 
 	// GET methods
 	DirectX::XMFLOAT4X4 GetViewMatrix();

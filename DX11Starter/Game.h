@@ -32,6 +32,7 @@ private:
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
 	void CreateBasicGeometry();
+	void LoadModels();
 
 	// Entity Vector Collection
 	std::vector<Entity> entities;

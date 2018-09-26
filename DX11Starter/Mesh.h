@@ -1,6 +1,9 @@
 #pragma once
 
+#include <DirectXMath.h>
 #include <d3d11.h>
+#include <vector>
+#include <fstream>
 #include "Vertex.h"
 
 // --------------------------------------------------------
@@ -11,7 +14,8 @@
 class Mesh
 {
 public:
-	Mesh(ID3D11Device* device, Vertex* vertexes, int vertexCount, unsigned int* indices, int indexCount); // Constructor
+	Mesh(ID3D11Device* device, Vertex* vertices, int vertexCount, unsigned int* indices, int indexCount); // Constructor Overload
+	Mesh(ID3D11Device* device, char* objFile); // Constructor Overload
 	Mesh(Mesh const& other); // Copy Constructor
 	Mesh& operator=(Mesh const& other); // Copy Assignment Operator
 	~Mesh(); // Destructor
@@ -22,6 +26,9 @@ public:
 	int GetIndexCount();
 
 private:
+	// Helper methods
+	void Setup(ID3D11Device* device, Vertex* vertices, int vertexCount, unsigned int* indices, int indexCount);
+
 	// Buffers to hold actual geometry data
 	ID3D11Buffer* vertexBuffer = nullptr;
 	ID3D11Buffer* indexBuffer = nullptr;

@@ -3,7 +3,7 @@
 // For the DirectX Math library
 using namespace DirectX;
 
-Camera::Camera(float width, float height)
+Camera::Camera(unsigned int width, unsigned int height)
 {
 	// Initialize Variables
 	XMStoreFloat4x4(&viewMatrix, XMMatrixIdentity());
@@ -104,7 +104,7 @@ void Camera::Rotate(float deltaX, float deltaY)
 		yRotation = 0;
 }
 
-void Camera::ResizeWindow(float width, float height)
+void Camera::ResizeWindow(unsigned int width, unsigned int height)
 {
 	XMMATRIX P = XMMatrixPerspectiveFovLH(
 		0.25f * PI,	// Field of View Angle

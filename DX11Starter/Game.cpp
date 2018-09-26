@@ -68,10 +68,11 @@ Game::~Game()
 void Game::Init()
 {
 	// Helper methods for loading shaders, creating some basic
-	// geometry to draw and some simple camera matrices.
+	// geometry to draw and some loading models
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
 	CreateBasicGeometry();
+	LoadModels();
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -92,6 +93,9 @@ void Game::LoadShaders()
 
 	pixelShader = new SimplePixelShader(device, context);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
+
+	// Set up a material to be shared by all the basic mesh entities
+	material = new Material(vertexShader, pixelShader);
 }
 
 // --------------------------------------------------------
@@ -158,16 +162,22 @@ void Game::CreateBasicGeometry()
 	// Create the actual Mesh object for Mesh 1
 	meshes.push_back(new Mesh(device, vertices3, vertexCount3, indices3, indexCount3));
 
-	// Set up a material to be shared by all the basic mesh entities
-	material = new Material(vertexShader, pixelShader);
+	// Assign the created meshes and material to new entities
+	entities.push_back(Entity(meshes[0], material));
+	entities.push_back(Entity(meshes[0], material));
+	entities.push_back(Entity(meshes[1], material));
+	entities.push_back(Entity(meshes[2], material));
+	entities.push_back(Entity(meshes[1], material));
+	entities.push_back(Entity(meshes[2], material));
+}
 
-	// Assign created meshes to new entities
-	entities.push_back(Entity(meshes[0], material));
-	entities.push_back(Entity(meshes[0], material));
-	entities.push_back(Entity(meshes[1], material));
-	entities.push_back(Entity(meshes[2], material));
-	entities.push_back(Entity(meshes[1], material));
-	entities.push_back(Entity(meshes[2], material));
+void Game::LoadModels()
+{
+	// Load meshes for models from external OBJ files
+	meshes.push_back(new Mesh(device, "assets/models/helix.obj"));
+
+	// Assign the created meshes and material to new entities
+	entities.push_back(Entity(meshes[3], material));
 }
 
 // --------------------------------------------------------

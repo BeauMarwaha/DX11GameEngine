@@ -155,4 +155,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Target Name="CopyContent" AfterTargets="Build">
+	  <ItemGroup>
+		<ResourceFiles Include="resources\**;" />
+	  </ItemGroup>
+	  <Copy SourceFiles="@(ResourceFiles)" 
+		DestinationFiles="@(ResourceFiles->'$(TargetDir)\resources\%(RecursiveDir)\%(Filename)%(Extension)')" 
+		SkipUnchangedFiles="True" UseHardlinksIfPossible="True"/>
+    <Message Text="Done copying resource files to output directory." />
+	</Target>
 </Project>

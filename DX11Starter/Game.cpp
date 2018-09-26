@@ -174,10 +174,25 @@ void Game::CreateBasicGeometry()
 void Game::LoadModels()
 {
 	// Load meshes for models from external OBJ files
-	meshes.push_back(new Mesh(device, "assets/models/helix.obj"));
+	meshes.push_back(new Mesh(device, "resources/models/helix.obj"));
+
+	// Load meshes for models from external OBJ files
+	meshes.push_back(new Mesh(device, "resources/models/torus.obj"));
+
+	// Load meshes for models from external OBJ files
+	meshes.push_back(new Mesh(device, "resources/models/cone.obj"));
 
 	// Assign the created meshes and material to new entities
 	entities.push_back(Entity(meshes[3], material));
+	entities.push_back(Entity(meshes[3], material));
+	entities.push_back(Entity(meshes[4], material));
+	entities.push_back(Entity(meshes[5], material));
+
+	// Move the new entities off to the side of the screen
+	entities[6].MoveForward(XMFLOAT3(3, 0, 0));
+	entities[7].MoveForward(XMFLOAT3(-3, 0, 0));
+	entities[8].MoveForward(XMFLOAT3(-2, 2, 0));
+	entities[9].MoveForward(XMFLOAT3(2, 2, 0));
 }
 
 // --------------------------------------------------------

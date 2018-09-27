@@ -21,12 +21,13 @@ struct DirectionalLight
 	float4 ambientColor;	// The ambient color of the light
 	float4 diffuseColor;	// The diffuse color of the light
 	float3 direction;		// The direction the light is pointing
+	float padding;			// Manual Padding to ensure members don't cross 16-byte boundaries in memory
 };
 
 // Constant Buffer to hold light information
 cbuffer lightData : register(b0)
 {
-	DirectionalLight light;
+	DirectionalLight lights[4]; // The size of this array should match the number of lights getting passed in
 };
 
 // --------------------------------------------------------
@@ -40,22 +41,30 @@ cbuffer lightData : register(b0)
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
+	float4 finalPixelColor = float4(0, 0, 0, 1);
+
 	// Normalize the passed in normal 
 	// - Previous transformations may have made it a non-unit vector
 	input.normal = normalize(input.normal);
 
-	// Calculate the normalized direction to the light
-	float3 directionToTheLight = normalize(-light.direction);
+	for (int i = 0; i < 4; i++)
+	{
+		// Calculate the normalized direction to the light
+		float3 directionToTheLight = normalize(-lights[i].direction);
 
-	// Calculate the light amount using the N dot L equation
-	// - Use the dot(v1, v2) function with the surface’s normal and the direction to the light
-	// - The normal should already be normalized from a previous step
-	// - The dot product result can be negative, which will be problematic if we have multiple
-	//   lights.Use the saturate() function to clamp the result between 0 and 1
-	float lightAmount = saturate(dot(input.normal, directionToTheLight));
+		// Calculate the light amount using the N dot L equation
+		// - Use the dot(v1, v2) function with the surface’s normal and the direction to the light
+		// - The normal should already be normalized from a previous step
+		// - The dot product result can be negative, which will be problematic if we have multiple
+		//   lights.Use the saturate() function to clamp the result between 0 and 1
+		float lightAmount = saturate(dot(input.normal, directionToTheLight));
 
-	// Return the final surface color based on light amount, diffuse color and ambient color
-	// - Scale the light’s diffuse color by the light amount
-	// - Add the light’s ambient color
-	return (lightAmount * light.diffuseColor) + light.ambientColor;
+		// Add to the final surface color based on light amount, diffuse color and ambient color
+		// - Scale the light’s diffuse color by the light amount
+		// - Add the light’s ambient color
+		finalPixelColor += (lightAmount * lights[i].diffuseColor) + lights[i].ambientColor;
+	}
+
+	// Return the final pixel color
+	return finalPixelColor;
 }

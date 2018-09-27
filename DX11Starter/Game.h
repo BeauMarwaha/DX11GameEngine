@@ -58,7 +58,7 @@ private:
 	// Indicates whether the left mouse button is pressed
 	bool mouseDown;
 
-	// Enviromental Directional Light
-	DirectionalLight light;
+	// Directional Lights
+	DirectionalLight lights[4];
 };
 

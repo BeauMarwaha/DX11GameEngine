@@ -28,7 +28,6 @@ Game::Game(HINSTANCE hInstance)
 	vertexShader = nullptr;
 	pixelShader = nullptr;
 	material = nullptr;
-	light = DirectionalLight();
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -68,10 +67,19 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
-	// Set up the enviromental light source
-	light.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
-	light.DiffuseColor = XMFLOAT4(0, 0, 1, 1);
-	light.Direction = XMFLOAT3(1, -1, 0);
+	// Set up the directional light source
+	lights[0].AmbientColor = XMFLOAT4(0.01f, 0.01f, 0.01f, 1.0f);
+	lights[0].DiffuseColor = XMFLOAT4(0, 0, 1, 1);
+	lights[0].Direction = XMFLOAT3(1, -1, 0);
+	lights[1].AmbientColor = XMFLOAT4(0.01f, 0.01f, 0.01f, 1.0f);
+	lights[1].DiffuseColor = XMFLOAT4(0, 1, 0, 1);
+	lights[1].Direction = XMFLOAT3(-1, 1, 0);
+	lights[2].AmbientColor = XMFLOAT4(0.01f, 0.01f, 0.01f, 1.0f);
+	lights[2].DiffuseColor = XMFLOAT4(1, 0, 0, 1);
+	lights[2].Direction = XMFLOAT3(-1, -1, 0);
+	lights[3].AmbientColor = XMFLOAT4(0.01f, 0.01f, 0.01f, 1.0f);
+	lights[3].DiffuseColor = XMFLOAT4(1, 1, 1, 1);
+	lights[3].Direction = XMFLOAT3(1, 1, 0);
 
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some loading models
@@ -116,9 +124,9 @@ void Game::CreateBasicGeometry()
 	//    over to a DirectX-controlled data structure (the vertex buffer)
 	Vertex vertices1[] =
 	{
-		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
-		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
-		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) }
+		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), XMFLOAT3(+0.0f, +1.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), XMFLOAT3(+1.5f, -1.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), XMFLOAT3(-1.5f, -1.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) }
 	};
 
 	// Set up the indices, which tell us which vertices to use and in which order
@@ -137,10 +145,10 @@ void Game::CreateBasicGeometry()
 	// Set up the vertices and indices for Mesh 2 ---------------------------------
 	Vertex vertices2[] =
 	{
-		{ XMFLOAT3(+2.0f, +1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
-		{ XMFLOAT3(+3.5f, -1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
-		{ XMFLOAT3(+2.0f, -1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
-		{ XMFLOAT3(+3.5f, +1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) }
+		{ XMFLOAT3(+2.0f, +1.0f, +0.0f), XMFLOAT3(+2.0f, +1.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(+3.5f, -1.0f, +0.0f), XMFLOAT3(+3.5f, -1.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(+2.0f, -1.0f, +0.0f), XMFLOAT3(+2.0f, -1.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(+3.5f, +1.0f, +0.0f), XMFLOAT3(+3.5f, +1.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) }
 	};
 	unsigned int indices2[] = { 0, 1, 2, 0, 3, 1 };
 
@@ -154,10 +162,10 @@ void Game::CreateBasicGeometry()
 	// Set up the vertices and indices for Mesh 3 ---------------------------------
 	Vertex vertices3[] =
 	{
-		{ XMFLOAT3(-2.0f, +1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
-		{ XMFLOAT3(-2.0f, -1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
-		{ XMFLOAT3(-3.5f, -1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
-		{ XMFLOAT3(-3.5f, +1.0f, +0.0f), XMFLOAT3(+0.0f, +0.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) }
+		{ XMFLOAT3(-2.0f, +1.0f, +0.0f), XMFLOAT3(-2.0f, +1.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(-2.0f, -1.0f, +0.0f), XMFLOAT3(-2.0f, -1.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(-3.5f, -1.0f, +0.0f), XMFLOAT3(-3.5f, -1.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) },
+		{ XMFLOAT3(-3.5f, +1.0f, +0.0f), XMFLOAT3(-3.5f, +1.0f, -1.0f), XMFLOAT2(+0.0f, +0.0f) }
 	};
 	unsigned int indices3[] = { 0, 1, 2, 3, 0, 2 };
 
@@ -316,9 +324,9 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// Pass the enviromental light to the pixel shader for all objects
 	pixelShader->SetData(
-		"light", // The name of the (eventual) variable in the shader
-		&light, // The address of the data to copy
-		sizeof(DirectionalLight)); // The size of the data to copy
+		"lights", // The name of the (eventual) variable in the shader
+		&lights, // The address of the data to copy
+		sizeof(DirectionalLight) * _countof(lights)); // The size of the data to copy
 
 	// Draw each entity
 	for (std::vector<Entity>::size_type i = 0; i != entities.size(); i++) {

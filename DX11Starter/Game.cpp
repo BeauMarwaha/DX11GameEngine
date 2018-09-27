@@ -28,6 +28,7 @@ Game::Game(HINSTANCE hInstance)
 	vertexShader = nullptr;
 	pixelShader = nullptr;
 	material = nullptr;
+	light = DirectionalLight();
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -67,6 +68,11 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+	// Set up the enviromental light source
+	light.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	light.DiffuseColor = XMFLOAT4(0, 0, 1, 1);
+	light.Direction = XMFLOAT3(1, -1, 0);
+
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some loading models
 	//  - You'll be expanding and/or replacing these later
@@ -307,6 +313,12 @@ void Game::Draw(float deltaTime, float totalTime)
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.0f,
 		0);
+
+	// Pass the enviromental light to the pixel shader for all objects
+	pixelShader->SetData(
+		"light", // The name of the (eventual) variable in the shader
+		&light, // The address of the data to copy
+		sizeof(DirectionalLight)); // The size of the data to copy
 
 	// Draw each entity
 	for (std::vector<Entity>::size_type i = 0; i != entities.size(); i++) {

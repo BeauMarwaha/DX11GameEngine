@@ -42,6 +42,7 @@ struct VertexToPixel
 	//  |    |                |
 	//  v    v                v
 	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
+	float3 normal		: NORMAL;
 };
 
 // --------------------------------------------------------
@@ -72,10 +73,9 @@ VertexToPixel main( VertexShaderInput input )
 	// screen and the distance (Z) from the camera (the "depth" of the pixel)
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
 
-	// Pass the color through 
-	// - The values will be interpolated per-pixel by the rasterizer
-	// - We don't need to alter it here, but we do need to send it to the pixel shader
-	//output.color = input.color;
+	// Convert the passed in normal to world space
+	// - In this case, however, transformations don't matter so we convert the 4X4 world matrix to a 3X3 before multiplying
+	output.normal = mul(input.normal, (float3x3)world);
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)

@@ -4,6 +4,7 @@
 #include "SimpleShader.h"
 #include "Entity.h"
 #include "Camera.h"
+#include "DirectionalLight.h"
 #include <DirectXMath.h>
 #include <vector>
 
@@ -56,5 +57,8 @@ private:
 
 	// Indicates whether the left mouse button is pressed
 	bool mouseDown;
+
+	// Enviromental Directional Light
+	DirectionalLight light;
 };
 

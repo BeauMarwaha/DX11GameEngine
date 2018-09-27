@@ -122,6 +122,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="DXCore.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Game.h" />
@@ -156,12 +157,10 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <Target Name="CopyContent" AfterTargets="Build">
-	  <ItemGroup>
-		<ResourceFiles Include="resources\**;" />
-	  </ItemGroup>
-	  <Copy SourceFiles="@(ResourceFiles)" 
-		DestinationFiles="@(ResourceFiles->'$(TargetDir)\resources\%(RecursiveDir)\%(Filename)%(Extension)')" 
-		SkipUnchangedFiles="True" UseHardlinksIfPossible="True"/>
+    <ItemGroup>
+      <ResourceFiles Include="resources\**;" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ResourceFiles)" DestinationFiles="@(ResourceFiles->'$(TargetDir)\resources\%(RecursiveDir)\%(Filename)%(Extension)')" SkipUnchangedFiles="True" UseHardlinksIfPossible="True" />
     <Message Text="Done copying resource files to output directory." />
-	</Target>
+  </Target>
 </Project>

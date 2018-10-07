@@ -157,12 +157,17 @@ void Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 	//  - This is actually a complex process of copying data to a local buffer
 	//    and then copying that entire buffer to the GPU.  
 	//  - The "SimpleShader" class handles all of that for you.
-	//vertexShader->SetMatrix4x4("world", worldMatrix);
+
+	// Send the world, view, and projection matrices to the vertex shader
 	material->GetVertexShader()->SetMatrix4x4("view", viewMatrix);
 	material->GetVertexShader()->SetMatrix4x4("projection", projectionMatrix);
 	XMFLOAT4X4 worldMatrixTranspose;
 	XMStoreFloat4x4(&worldMatrixTranspose, XMMatrixTranspose(XMLoadFloat4x4(&GetWorldMatrix())));
 	material->GetVertexShader()->SetMatrix4x4("world", worldMatrixTranspose);
+
+	// Send the texture information to the pixel shader
+	material->GetPixelShader()->SetSamplerState("samplerState", material->GetSamplerState());
+	material->GetPixelShader()->SetShaderResourceView("textureBaseColor", material->GetShaderResourceView());
 
 	// Once you've set all of the data you care to change for
 	// the next draw call, you need to actually send it to the GPU

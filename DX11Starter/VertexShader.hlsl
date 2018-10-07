@@ -43,6 +43,7 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
 	float3 normal		: NORMAL;
+	float2 uv			: TEXCOORD;
 };
 
 // --------------------------------------------------------
@@ -76,6 +77,9 @@ VertexToPixel main( VertexShaderInput input )
 	// Convert the passed in normal to world space
 	// - In this case, however, transformations don't matter so we convert the 4X4 world matrix to a 3X3 before multiplying
 	output.normal = mul(input.normal, (float3x3)world);
+
+	// Pass the vertex UV cordinates through to the pixel shader
+	output.uv = input.uv;
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)

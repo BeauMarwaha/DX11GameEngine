@@ -52,6 +52,10 @@ Game::~Game()
 	delete vertexShader;
 	delete pixelShader;
 
+	// Release DXTK Texture resources
+	shaderResourceView->Release();
+	samplerState->Release();
+
 	// Delete the basic material
 	delete material;
 
@@ -81,10 +85,10 @@ void Game::Init()
 	lights[3].DiffuseColor = XMFLOAT4(1, 1, 1, 1);
 	lights[3].Direction = XMFLOAT3(1, 1, 0);
 
-	// Helper methods for loading shaders, creating some basic
-	// geometry to draw and some loading models
+	// Helper methods for loading materials, creating some basic
+	// geometry to draw, and some loading models
 	//  - You'll be expanding and/or replacing these later
-	LoadShaders();
+	LoadMaterials();
 	CreateBasicGeometry();
 	LoadModels();
 
@@ -95,12 +99,16 @@ void Game::Init()
 }
 
 // --------------------------------------------------------
-// Loads shaders from compiled shader object (.cso) files using
-// my SimpleShader wrapper for DirectX shader manipulation.
-// - SimpleShader provides helpful methods for sending
-//   data to individual variables on the GPU
+// Creates basic materials to be used in engine, this includes:
+// - Loading shaders from compiled shader object (.cso) files using
+//   my SimpleShader wrapper for DirectX shader manipulation
+//   - SimpleShader provides helpful methods for sending
+//     data to individual variables on the GPU
+// - Using DirectXTK to load a texture from an external file
+// - And creating a sampler description which specifies how the 
+//   material should sample from the loaded texture
 // --------------------------------------------------------
-void Game::LoadShaders()
+void Game::LoadMaterials()
 {
 	vertexShader = new SimpleVertexShader(device, context);
 	vertexShader->LoadShaderFile(L"VertexShader.cso");
@@ -108,8 +116,27 @@ void Game::LoadShaders()
 	pixelShader = new SimplePixelShader(device, context);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
 
+	// Use the DirectXTK to load a texture from an external file and place it into a shader resource view
+	CreateWICTextureFromFile(
+		device,										// Application Device
+		context,									// Application Device Context (necesary for auto generation of mipmaps)
+		L"resources/textures/GravelCobble_bc.jpg",	// File path to external texture
+		0,											// Reference to the texture which we don't need so we pass in 0
+		&shaderResourceView);						// Address to the Shader Resource View pointer which we pass to the shader later
+
+	// Define a sampler description
+	D3D11_SAMPLER_DESC samplerDesc = D3D11_SAMPLER_DESC();
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP; // Have UVW address wrap on the U axis
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP; // Have UVW address wrap on the V axis
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP; // Have UVW address wrap on the W axis
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR; // Use trilinear filtering
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX; // This value needs to be higher than 0 for mipmapping to work
+
+	// Create the sampler state using the defined sampler description
+	device->CreateSamplerState(&samplerDesc, &samplerState);
+
 	// Set up a material to be shared by all the basic mesh entities
-	material = new Material(vertexShader, pixelShader);
+	material = new Material(vertexShader, pixelShader, shaderResourceView, samplerState);
 }
 
 // --------------------------------------------------------
@@ -322,7 +349,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
-	// Pass the enviromental light to the pixel shader for all objects
+	// Pass the enviromental lights to the pixel shader for all objects
 	pixelShader->SetData(
 		"lights", // The name of the (eventual) variable in the shader
 		&lights, // The address of the data to copy

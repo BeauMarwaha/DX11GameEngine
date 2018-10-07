@@ -5,6 +5,7 @@
 #include "Entity.h"
 #include "Camera.h"
 #include "DirectionalLight.h"
+#include "WICTextureLoader.h"
 #include <DirectXMath.h>
 #include <vector>
 
@@ -31,7 +32,7 @@ public:
 
 private:
 	// Initialization helper methods - feel free to customize, combine, etc.
-	void LoadShaders(); 
+	void LoadMaterials();
 	void CreateBasicGeometry();
 	void LoadModels();
 
@@ -47,6 +48,10 @@ private:
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
+
+	// DXTK Texture resources
+	ID3D11ShaderResourceView* shaderResourceView;
+	ID3D11SamplerState* samplerState;
 
 	// Basic Material reference
 	Material* material;

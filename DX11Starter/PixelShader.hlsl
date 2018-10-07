@@ -13,6 +13,7 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;
 	float3 normal		: NORMAL;
+	float2 uv			: TEXCOORD;
 };
 
 // Struct representing a directional light
@@ -30,6 +31,10 @@ cbuffer lightData : register(b0)
 	DirectionalLight lights[4]; // The size of this array should match the number of lights getting passed in
 };
 
+// Texture related global variables
+Texture2D textureBaseColor	: register(t0);
+SamplerState samplerState	: register(s0);
+
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
 // 
@@ -41,12 +46,12 @@ cbuffer lightData : register(b0)
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	float4 finalPixelColor = float4(0, 0, 0, 1);
-
 	// Normalize the passed in normal 
 	// - Previous transformations may have made it a non-unit vector
 	input.normal = normalize(input.normal);
 
+	// Calculate the lighting impact on final pixel color for each passed in light
+	float4 lightColor = float4(0, 0, 0, 1);
 	for (int i = 0; i < 4; i++)
 	{
 		// Calculate the normalized direction to the light
@@ -62,9 +67,12 @@ float4 main(VertexToPixel input) : SV_TARGET
 		// Add to the final surface color based on light amount, diffuse color and ambient color
 		// - Scale the light’s diffuse color by the light amount
 		// - Add the light’s ambient color
-		finalPixelColor += (lightAmount * lights[i].diffuseColor) + lights[i].ambientColor;
+		lightColor += (lightAmount * lights[i].diffuseColor) + lights[i].ambientColor;
 	}
 
+	// Sample the base final pixel color from the passed in texture and uv cordinates
+	float4 surfaceColor = textureBaseColor.Sample(samplerState, input.uv);
+
 	// Return the final pixel color
-	return finalPixelColor;
+	return surfaceColor * lightColor;
 }
